@@ -20,6 +20,9 @@ class PointTransaction extends Model
         'ref_id',
         'operator_id',
         'operator_name',
+        'reason',
+        'source',
+        'remark',
         'remark',
     ];
 
