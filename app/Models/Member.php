@@ -36,15 +36,17 @@ class Member extends Model
     {
         parent::boot();
 
-        // 创建会员时自动创建积分账户
+        // 创建会员时自动创建积分账户（避免重复创建）
         static::created(function ($member) {
-            PointAccount::create([
-                'member_id' => $member->id,
-                'balance' => 0,
-                'total_earned' => 0,
-                'total_spent' => 0,
-                'frozen_points' => 0,
-            ]);
+            PointAccount::firstOrCreate(
+                ['member_id' => $member->id],
+                [
+                    'balance' => 0,
+                    'total_earned' => 0,
+                    'total_spent' => 0,
+                    'frozen_points' => 0,
+                ]
+            );
         });
     }
 

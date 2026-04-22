@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\RedemptionOrderStatus;
 
 class RedemptionOrder extends Model
 {
@@ -31,6 +32,7 @@ class RedemptionOrder extends Model
         'quantity' => 'integer',
         'unit_points' => 'integer',
         'total_points' => 'integer',
+        'status' => RedemptionOrderStatus::class,
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];

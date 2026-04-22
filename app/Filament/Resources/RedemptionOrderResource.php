@@ -4,14 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RedemptionOrderResource\Pages;
 use App\Models\RedemptionOrder;
+use App\Services\PointRedemptionService;
+use Filament\Actions\Action;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\BadgeColumn;
 use App\Enums\RedemptionOrderStatus;
-use Illuminate\Support\Str;
 
 class RedemptionOrderResource extends Resource
 {
@@ -106,8 +106,9 @@ class RedemptionOrderResource extends Resource
                     ->formatStateUsing(fn (RedemptionOrderStatus $state) => $state->label())
                     ->colors([
                         'warning' => RedemptionOrderStatus::PENDING,
-                        'success' => RedemptionOrderStatus::COMPLETED,
+                        'success' => RedemptionOrderStatus::VERIFIED,
                         'danger' => RedemptionOrderStatus::CANCELLED,
+                        'gray' => RedemptionOrderStatus::REJECTED,
                     ]),
                 Tables\Columns\TextColumn::make('verifier.name')
                     ->label('核销人'),
@@ -124,8 +125,52 @@ class RedemptionOrderResource extends Resource
                     ->relationship('member', 'name'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('verify')
+                        ->label('核销')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn (RedemptionOrder $record) => $record->status === RedemptionOrderStatus::PENDING)
+                        ->form([
+                            Forms\Components\Select::make('sales_rep_id')
+                                ->label('核销人')
+                                ->relationship('verifier', 'name')
+                                ->nullable(),
+                            Forms\Components\Textarea::make('remark')
+                                ->label('备注'),
+                        ])
+                        ->action(function (RedemptionOrder $record, array $data) {
+                            $service = app(PointRedemptionService::class);
+                            $service->verify($record, $data['sales_rep_id'] ?? null, $data['remark'] ?? null);
+                        }),
+                    Tables\Actions\Action::make('cancel')
+                        ->label('取消')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->visible(fn (RedemptionOrder $record) => $record->status === RedemptionOrderStatus::PENDING)
+                        ->form([
+                            Forms\Components\Textarea::make('remark')
+                                ->label('取消原因'),
+                        ])
+                        ->action(function (RedemptionOrder $record, array $data) {
+                            $service = app(PointRedemptionService::class);
+                            $service->cancel($record, null, $data['remark'] ?? null);
+                        }),
+                    Tables\Actions\Action::make('reject')
+                        ->label('拒绝')
+                        ->icon('heroicon-o-no-symbol')
+                        ->color('gray')
+                        ->visible(fn (RedemptionOrder $record) => $record->status === RedemptionOrderStatus::PENDING)
+                        ->form([
+                            Forms\Components\Textarea::make('remark')
+                                ->label('拒绝原因'),
+                        ])
+                        ->action(function (RedemptionOrder $record, array $data) {
+                            $service = app(PointRedemptionService::class);
+                            $service->reject($record, null, $data['remark'] ?? null);
+                        }),
+                ]),
             ])
             ->bulkActions([
                 //

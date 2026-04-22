@@ -4,12 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\ProductStatus;
 
 class PointProduct extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'point_products';
 
     protected $fillable = [
@@ -26,7 +24,7 @@ class PointProduct extends Model
     protected $casts = [
         'points_price' => 'integer',
         'stock' => 'integer',
-        'status' => 'integer',
+        'status' => ProductStatus::class,
         'sort' => 'integer',
     ];
 
