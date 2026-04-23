@@ -88,6 +88,7 @@ class Member extends Model
     /**
      * 关系：多个跟进记录
      */
+    public function showcases(): HasMany { return $this->hasMany(Showcase::class); }
     public function followUpRecords(): HasMany
     {
         return $this->hasMany(FollowUpRecord::class);
@@ -96,5 +97,10 @@ class Member extends Model
     public function verificationRecords(): HasMany
     {
         return $this->hasMany(VerificationRecord::class);
+    }
+
+    public function salesTasks(): HasMany
+    {
+        return $this->hasMany(SalesTask::class);
     }
 }

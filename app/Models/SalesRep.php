@@ -41,10 +41,26 @@ class SalesRep extends Model
     }
 
     /**
+     * 关系：跟进记录
+     */
+    public function followUpRecords(): HasMany
+    {
+        return $this->hasMany(FollowUpRecord::class);
+    }
+
+    /**
      * 关系：核销记录
      */
     public function verificationRecords(): HasMany
     {
         return $this->hasMany(VerificationRecord::class);
+    }
+
+    /**
+     * 关系：销售任务
+     */
+    public function salesTasks(): HasMany
+    {
+        return $this->hasMany(SalesTask::class);
     }
 }

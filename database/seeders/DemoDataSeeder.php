@@ -224,6 +224,49 @@ class DemoDataSeeder extends Seeder
 
         // 9. 创建跟进记录
         $this->createFollowUpRecords($members, $salesReps);
+        $this->createShowcases($doctors, $members, $salesReps);
+    }
+    private function createShowcases(array $doctors, array $members, array $salesReps): void
+    {
+        $projectTypes = ['祛痘', '痘坑', '疤痕', '光子嫩肤', '黄金微针', '眼整形'];
+        $projectNames = [
+            '祛痘' => '果酸焕肤祛痘', '痘坑' => '点阵激光修复痘坑', '疤痕' => '疤痕增生修复',
+            '光子嫩肤' => 'M22光子嫩肤', '黄金微针' => '黄金微针抗衰', '眼整形' => '全切双眼皮',
+        ];
+        $authStatuses = ['pending', 'authorized', 'authorized', 'authorized', 'rejected'];
+        $contentStatuses = ['draft', 'editing', 'ready', 'ready'];
+        $titles = [
+            '祛痘' => ['果酸焕肤祛痘 术后7天对比', '重度痤疮治疗前后对比', '炎症性痘痘治疗案例'],
+            '痘坑' => ['点阵激光修复痘坑 3次治疗后', '厢车型痘坑综合治疗', '痘坑修复前后对比照'],
+            '疤痕' => ['剖腹产疤痕修复案例', '增生性疤痕治疗对比', '面部疤痕修复实例'],
+            '光子嫩肤' => ['M22光子嫩肤 术后即刻', '色斑淡化治疗案例', '毛孔粗大改善对比'],
+            '黄金微针' => ['黄金微针抗衰 术后1月', '法令纹改善案例', '面部紧致提升对比'],
+            '眼整形' => ['全切双眼皮 术后恢复', '开眼角手术案例', '眼袋去除对比照'],
+        ];
+        for ($i = 0; $i < 30; $i++) {
+            $projectType = $projectTypes[array_rand($projectTypes)];
+            $doctor = $doctors[array_rand($doctors)];
+            $member = $members[array_rand($members)];
+            $salesRep = $salesReps[array_rand($salesReps)];
+            $title = $titles[$projectType][array_rand($titles[$projectType])];
+            $authStatus = $authStatuses[array_rand($authStatuses)];
+            $contentStatus = $contentStatuses[array_rand($contentStatuses)];
+            $isFeatured = rand(1, 10) <= 3;
+            $usableWechat = in_array($authStatus, ['authorized']) && rand(1, 10) <= 6;
+            $usableArticle = in_array($authStatus, ['authorized']) && rand(1, 10) <= 4;
+            $usableXhs = in_array($authStatus, ['authorized']) && rand(1, 10) <= 5;
+            \App\Models\Showcase::create([
+                'doctor_id' => $doctor->id, 'member_id' => $member->id, 'sales_rep_id' => $salesRep->id,
+                'title' => $title, 'project_name' => $projectNames[$projectType], 'project_type' => $projectType,
+                'media_type' => rand(1, 10) <= 9 ? 'image' : 'video',
+                'authorization_status' => $authStatus, 'content_status' => $contentStatus,
+                'is_featured' => $isFeatured, 'is_public' => true,
+                'usable_for_wechat' => $usableWechat, 'usable_for_article' => $usableArticle,
+                'usable_for_xiaohongshu' => $usableXhs, 'before_after_type' => 'comparison',
+                'tags' => json_encode([$projectType, $projectNames[$projectType]]), 'status' => 1, 'sort' => 0,
+            ]);
+        }
+        $this->command->info('- 案例素材: ' . \App\Models\Showcase::count() . ' 个');
     }
 }
     private function createFollowUpRecords(array $members, array $salesReps): void
