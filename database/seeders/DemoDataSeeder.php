@@ -221,5 +221,58 @@ class DemoDataSeeder extends Seeder
         $this->command->info('- 会员: ' . count($members) . ' 个');
         $this->command->info('- 积分商品: ' . count($products) . ' 个');
         $this->command->info('- 兑换订单: ' . RedemptionOrder::count() . ' 个');
+
+        // 9. 创建跟进记录
+        $this->createFollowUpRecords($members, $salesReps);
     }
 }
+    private function createFollowUpRecords(array $members, array $salesReps): void
+    {
+        $types = ['postoperative', 'repurchase', 'event', 'referral', 'consultation'];
+        $channels = ['phone', 'wechat', 'face_to_face', 'sms'];
+        $intentionLevels = ['high', 'medium', 'low', 'none', 'deal'];
+        $statuses = ['pending', 'completed', 'need_follow', 'deal', 'invalid'];
+
+        foreach ($members as $i => $member) {
+            $numRecords = rand(1, 3);
+            for ($j = 0; $j < $numRecords; $j++) {
+                $daysAgo = rand(1, 30);
+                $createdAt = now()->subDays($daysAgo);
+                $status = $statuses[array_rand($statuses)];
+                $intention = $status === 'deal' ? 'deal' : $intentionLevels[array_rand($intentionLevels)];
+
+                $nextFollowAt = null;
+                if (in_array($status, ['pending', 'need_follow'])) {
+                    $nextFollowAt = $daysAgo <= 7 ? now()->addDays(rand(1, 7)) : now()->subDays(rand(1, 3));
+                }
+
+                \App\Models\FollowUpRecord::create([
+                    'member_id' => $member->id,
+                    'sales_rep_id' => $salesReps[array_rand($salesReps)]->id,
+                    'type' => $types[array_rand($types)],
+                    'channel' => $channels[array_rand($channels)],
+                    'content' => $this->getFollowUpContent($types[array_rand($types)]),
+                    'intention_level' => $intention,
+                    'next_follow_up_at' => $nextFollowAt,
+                    'status' => $status,
+                    'result' => $status === 'completed' ? '已跟进，客户反馈良好' : null,
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ]);
+            }
+        }
+
+        $this->command->info('- 跟进记录: ' . \App\Models\FollowUpRecord::count() . ' 个');
+    }
+
+    private function getFollowUpContent(string $type): string
+    {
+        return match($type) {
+            'postoperative' => '术后回访：客户恢复良好，建议下次复诊时间',
+            'repurchase' => '复购提醒：客户积分充足，推荐适合项目',
+            'event' => '活动邀约：邀请参加本月皮肤护理讲座',
+            'referral' => '转介绍沟通：客户介绍朋友咨询项目',
+            'consultation' => '咨询面诊：客户对面部提升项目感兴趣',
+            default => '日常跟进',
+        };
+    }

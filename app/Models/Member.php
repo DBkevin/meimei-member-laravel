@@ -85,6 +85,14 @@ class Member extends Model
     /**
      * 关系：多个核销记录
      */
+    /**
+     * 关系：多个跟进记录
+     */
+    public function followUpRecords(): HasMany
+    {
+        return $this->hasMany(FollowUpRecord::class);
+    }
+
     public function verificationRecords(): HasMany
     {
         return $this->hasMany(VerificationRecord::class);

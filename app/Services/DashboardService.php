@@ -157,6 +157,47 @@ class DashboardService
             'products' => $this->getProductStats(),
             'recent_transactions' => $this->getRecentTransactions(),
             'recent_orders' => $this->getRecentOrders(),
+            'follow_up' => $this->getFollowUpStats(),
+            'recent_follow_ups' => $this->getRecentFollowUps(),
         ];
     }
 }
+    /**
+     * 跟进数据统计
+     */
+    public function getFollowUpStats(): array
+    {
+        $followUpService = app(FollowUpService::class);
+        return [
+            'today_pending' => $followUpService->getTodayPendingCount(),
+            'overdue' => $followUpService->getOverdueCount(),
+            'month_count' => $followUpService->getMonthFollowUpCount(),
+            'high_intention' => $followUpService->getHighIntentionCount(),
+            'month_deal' => $followUpService->getMonthDealCount(),
+            'sales_counts' => $followUpService->getSalesFollowUpCounts(),
+        ];
+    }
+
+    /**
+     * 最近跟进记录
+     */
+    public function getRecentFollowUps(int $limit = 10): array
+    {
+        $followUpService = app(FollowUpService::class);
+        return $followUpService->getRecentFollowUps($limit)->map(fn($f) => [
+            'id' => $f->id,
+            'member_name' => $f->member?->name ?? '未知会员',
+            'member_phone' => $f->member?->phone ?? '',
+            'sales_rep_name' => $f->salesRep?->name ?? '-',
+            'type' => $f->type,
+            'type_label' => \App\Enums\FollowUpType::from($f->type)->label(),
+            'channel' => $f->channel,
+            'channel_label' => \App\Enums\FollowUpChannel::from($f->channel)->label(),
+            'intention_level' => $f->intention_level,
+            'intention_label' => $f->intention_level ? \App\Enums\FollowUpIntentionLevel::from($f->intention_level)->label() : '-',
+            'status' => $f->status,
+            'status_label' => \App\Enums\FollowUpStatus::from($f->status)->label(),
+            'next_follow_at' => $f->next_follow_up_at?->format('Y-m-d H:i'),
+            'created_at' => $f->created_at->format('Y-m-d H:i:s'),
+        ])->toArray();
+    }

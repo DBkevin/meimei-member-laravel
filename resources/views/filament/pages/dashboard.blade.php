@@ -124,6 +124,51 @@ use Filament\Support\Facades\FilamentColor;
             <x-filament::card>
                 <div class="text-center">
                     <div class="text-2xl font-bold text-warning-600">{{ $dashboardData['products']['low_stock_count'] ?? 0 }}</div>
+
+        <!-- 跟进数据统计 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <x-filament::card>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-warning-600">{{ $dashboardData[follow_up][today_pending] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500 mt-1">今日待跟进</div>
+                </div>
+            </x-filament::card>
+
+            <x-filament::card>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-danger-600">{{ $dashboardData[follow_up][overdue] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500 mt-1">逾期未跟进</div>
+                </div>
+            </x-filament::card>
+
+            <x-filament::card>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-primary-600">{{ $dashboardData[follow_up][month_count] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500 mt-1">本月跟进次数</div>
+                </div>
+            </x-filament::card>
+
+            <x-filament::card>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-success-600">{{ $dashboardData[follow_up][high_intention] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500 mt-1">高意向客户</div>
+                </div>
+            </x-filament::card>
+
+            <x-filament::card>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-info-600">{{ $dashboardData[follow_up][month_deal] ?? 0 }}</div>
+                    <div class="text-sm text-gray-500 mt-1">本月成交跟进</div>
+                </div>
+            </x-filament::card>
+
+            <x-filament::card>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600">{{ array_sum($dashboardData[follow_up][sales_counts] ?? []) }}</div>
+                    <div class="text-sm text-gray-500 mt-1">本月销售跟进</div>
+                </div>
+            </x-filament::card>
+        </div>
                     <div class="text-sm text-gray-500 mt-1">低库存商品</div>
                 </div>
             </x-filament::card>
@@ -199,8 +244,104 @@ use Filament\Support\Facades\FilamentColor;
             </x-filament::card>
         </div>
 
+        <!-- 最近跟进记录 -->
+        <x-filament::card>
+            <div class="font-semibold text-lg mb-4">最近跟进记录</div>
+            @if(count($dashboardData['recent_follow_ups']) > 0)
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-sm text-gray-500 border-b">
+                                <th class="pb-2">会员</th>
+                                <th class="pb-2">销售</th>
+                                <th class="pb-2">类型</th>
+                                <th class="pb-2">渠道</th>
+                                <th class="pb-2">意向</th>
+                                <th class="pb-2">状态</th>
+                                <th class="pb-2">下次跟进</th>
+                                <th class="pb-2">时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($dashboardData['recent_follow_ups'] as $follow)
+                                <tr class="border-b border-gray-100 last:border-0">
+                                    <td class="py-2 text-sm">{{ $follow['member_name'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['sales_rep_name'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['type_label'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['channel_label'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['intention_label'] }}</td>
+                                    <td class="py-2 text-sm">
+                                        <span class="px-2 py-1 text-xs rounded-full
+                                            @if($follow['status'] === 'pending') bg-yellow-100 text-yellow-800
+                                            @elseif($follow['status'] === 'completed') bg-green-100 text-green-800
+                                            @elseif($follow['status'] === 'need_follow') bg-blue-100 text-blue-800
+                                            @elseif($follow['status'] === 'deal') bg-purple-100 text-purple-800
+                                            @else bg-gray-100 text-gray-800 @endif">
+                                            {{ $follow['status_label'] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2 text-sm text-gray-500">{{ $follow['next_follow_at'] ?? '-' }}</td>
+                                    <td class="py-2 text-sm text-gray-400">{{ $follow['created_at'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-gray-400 text-center py-4">暂无跟进记录</div>
+            @endif
+        </x-filament::card>
+
         <!-- 最近积分流水 -->
         <x-filament::card>
+        <!-- 最近跟进记录 -->
+        <x-filament::card>
+            <div class="font-semibold text-lg mb-4">最近跟进记录</div>
+            @if(count($dashboardData['recent_follow_ups']) > 0)
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-sm text-gray-500 border-b">
+                                <th class="pb-2">会员</th>
+                                <th class="pb-2">销售</th>
+                                <th class="pb-2">类型</th>
+                                <th class="pb-2">渠道</th>
+                                <th class="pb-2">意向</th>
+                                <th class="pb-2">状态</th>
+                                <th class="pb-2">下次跟进</th>
+                                <th class="pb-2">时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($dashboardData['recent_follow_ups'] as $follow)
+                                <tr class="border-b border-gray-100 last:border-0">
+                                    <td class="py-2 text-sm">{{ $follow['member_name'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['sales_rep_name'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['type_label'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['channel_label'] }}</td>
+                                    <td class="py-2 text-sm">{{ $follow['intention_label'] }}</td>
+                                    <td class="py-2 text-sm">
+                                        <span class="px-2 py-1 text-xs rounded-full
+                                            @if($follow['status'] === 'pending') bg-yellow-100 text-yellow-800
+                                            @elseif($follow['status'] === 'completed') bg-green-100 text-green-800
+                                            @elseif($follow['status'] === 'need_follow') bg-blue-100 text-blue-800
+                                            @elseif($follow['status'] === 'deal') bg-purple-100 text-purple-800
+                                            @else bg-gray-100 text-gray-800 @endif">
+                                            {{ $follow['status_label'] }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2 text-sm text-gray-500">{{ $follow['next_follow_at'] ?? '-' }}</td>
+                                    <td class="py-2 text-sm text-gray-400">{{ $follow['created_at'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-gray-400 text-center py-4">暂无跟进记录</div>
+            @endif
+        </x-filament::card>
+
             <div class="font-semibold text-lg mb-4">最近积分流水</div>
             @if(count($dashboardData['recent_transactions']) > 0)
                 <div class="overflow-x-auto">
